@@ -1,34 +1,47 @@
 const puppeteer = require('puppeteer');
 const randomUseragent = require('random-useragent');
 const proxyChain = require('proxy-chain');
+require('dotenv').config();
 
 const getRandomDelay = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
 const streamSpotify = async (page, url) => {
-    await page.goto(url, { waitUntil: 'networkidle2' });
-    await page.waitForSelector('button[aria-label="Play"]');
-    await page.click('button[aria-label="Play"]');
-    const playTime = getRandomDelay(300000, 3600000);
-    await page.waitForTimeout(playTime);
-    await page.click('button[aria-label="Play"]');
+    try {
+        await page.goto(url, { waitUntil: 'networkidle2' });
+        await page.waitForSelector('button[aria-label="Play"]');
+        await page.click('button[aria-label="Play"]');
+        const playTime = getRandomDelay(300000, 3600000);
+        await page.waitForTimeout(playTime);
+        await page.click('button[aria-label="Play"]');
+    } catch (error) {
+        console.error('Spotify streaming error:', error);
+    }
 };
 
 const streamYouTube = async (page, url) => {
-    await page.goto(url, { waitUntil: 'networkidle2' });
-    await page.waitForSelector('button[aria-label="Play"]');
-    await page.click('button[aria-label="Play"]');
-    const playTime = getRandomDelay(300000, 3600000);
-    await page.waitForTimeout(playTime);
-    await page.click('button[aria-label="Pause (k)"]');
+    try {
+        await page.goto(url, { waitUntil: 'networkidle2' });
+        await page.waitForSelector('button[aria-label="Play"]');
+        await page.click('button[aria-label="Play"]');
+        const playTime = getRandomDelay(300000, 3600000);
+        await page.waitForTimeout(playTime);
+        await page.click('button[aria-label="Pause (k)"]');
+    } catch (error) {
+        console.error('YouTube streaming error:', error);
+    }
 };
 
 const streamAppleMusic = async (page, url) => {
-    await page.goto(url, { waitUntil: 'networkidle2' });
-    await page.waitForSelector('.playback-controls__play');
-    await page.click('.playback-controls__play');
-    const playTime = getRandomDelay(300000, 3600000);
-    await page.waitForTimeout(playTime);
-    await page.click('.playback-controls__pause');
+    try {
+        await page.goto(url, { waitUntil: 'networkidle2' });
+        await page.waitForSelector('.playback-controls__play');
+        await page.click('.playback-controls__play');
+        const playTime = getRandomDelay(300000, 3600000);
+        await page.waitForTimeout(playTime);
+        await page.click('.playback-controls__pause');
+    } catch (error) {
+        console.error('Apple Music streaming error:', error);
+    }
 };
 
 const startStreaming = async (task) => {
@@ -49,13 +62,13 @@ const startStreaming = async (task) => {
     const userAgent = randomUseragent.getRandom();
     await page.setUserAgent(userAgent);
 
-    const proxyUrl = 'http://your-proxy-url:port';
+    const proxyUrl = process.env.PROXY_URL;
     const newProxyUrl = await proxyChain.anonymizeProxy(proxyUrl);
 
     try {
         await page.authenticate({
-            username: 'proxy-username',
-            password: 'proxy-password'
+            username: process.env.PROXY_USERNAME,
+            password: process.env.PROXY_PASSWORD
         });
 
         if (task.platform === 'spotify') {
